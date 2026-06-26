@@ -1,0 +1,61 @@
+# QueueStorm — local deploy stack.
+#
+# Runs the whole service locally with one command, no external infra:
+#   docker compose up -d --build
+#   curl http://localhost:3000/health   # -> {"status":"ok"}
+#
+# Config (set in .env next to this file, never committed):
+#   API_PORT         host port to publish the API on (default 3000)
+#   LLM_PROVIDER     openai (default) | anthropic | google-genai
+#   LLM_MODEL        optional model override for the selected provider
+#   OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY
+#                    key for the selected provider — OpenAI is the default;
+#                    Gemini is geo-blocked from some regions (e.g. BD).
+#
+# To expose this publicly, put any reverse proxy (Traefik, Caddy, nginx) in
+# front of the published port and terminate TLS there — no proxy-specific
+# config lives in this file.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: queuestorm-api:latest
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3000"
+      REDIS_URL: redis://redis:6379
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      - redis
+    networks:
+      - internal
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge

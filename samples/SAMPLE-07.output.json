@@ -1,0 +1,19 @@
+{
+  "relevant_transaction_id": "TXN-9701",
+  "evidence_verdict": "consistent",
+  "case_type": "agent_cash_in_issue",
+  "severity": "high",
+  "department": "agent_operations",
+  "agent_summary": "Customer reports a BDT 2,000 agent cash-in made this morning that has not reflected in their balance. Transaction history shows a matching cash_in transaction TXN-9701 for amount 2000 with counterparty AGENT-318 and status pending, supporting the complaint.",
+  "recommended_next_action": "Escalate to agent_operations to investigate pending cash-in TXN-9701 with AGENT-318, verify ledger/agent float status and customer wallet posting. Update the customer through official support channels; do not request PIN, OTP, password, or full card details.",
+  "customer_reply": "আপনার অভিযোগটি আমরা পেয়েছি। আপনার ২০০০ টাকার ক্যাশ-ইনটি সিস্টেমে পেন্ডিং অবস্থায় দেখা যাচ্ছে, তাই বিষয়টি সংশ্লিষ্ট টিমে যাচাইয়ের জন্য পাঠানো হচ্ছে। যাচাই শেষে যোগ্য কোনো অর্থ থাকলে তা অফিসিয়াল চ্যানেলের মাধ্যমে আপনার অ্যাকাউন্টে সমন্বয় করা হবে। অনুগ্রহ করে আপনার PIN, OTP, পাসওয়ার্ড বা কার্ডের সম্পূর্ণ নম্বর কারও সঙ্গে শেয়ার করবেন না।",
+  "human_review_required": true,
+  "confidence": 0.96,
+  "reason_codes": [
+    "matching_cash_in_amount",
+    "agent_counterparty",
+    "status_pending",
+    "customer_reports_balance_not_updated"
+  ],
+  "ticket_id": "TKT-007"
+}

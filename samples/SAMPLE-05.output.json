@@ -1,0 +1,19 @@
+{
+  "relevant_transaction_id": null,
+  "evidence_verdict": "insufficient_data",
+  "case_type": "phishing_or_social_engineering",
+  "severity": "critical",
+  "department": "fraud_risk",
+  "agent_summary": "Customer reports an inbound caller impersonating bKash and pressuring them to share an OTP by threatening account block. Customer states they have not shared anything yet. No transaction history is provided or needed; this is a phishing/social-engineering attempt with no reported money movement so far.",
+  "recommended_next_action": "Escalate to fraud_risk for phishing attempt logging and risk review. Advise the customer through official support channels only, reinforce that OTP/PIN/password must never be shared, and check for any recent unauthorized account activity if available.",
+  "customer_reply": "This is not a genuine request. bKash will never ask you to share your OTP, PIN, password, or full card details over a call or message. Please do not share any OTP or PIN with anyone.\n\nSince you have not shared anything yet, that is good. We will route this report to our fraud risk team for review. If you notice any unauthorized transaction or account activity, report it immediately through official bKash support channels. Any eligible action will be handled through official channels only.",
+  "human_review_required": true,
+  "confidence": 0.98,
+  "reason_codes": [
+    "social_engineering_attempt",
+    "otp_request",
+    "impersonation_claim",
+    "no_credential_shared"
+  ],
+  "ticket_id": "TKT-005"
+}
