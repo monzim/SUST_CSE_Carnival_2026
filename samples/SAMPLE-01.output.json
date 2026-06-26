@@ -1,0 +1,19 @@
+{
+  "relevant_transaction_id": "TXN-9101",
+  "evidence_verdict": "consistent",
+  "case_type": "wrong_transfer",
+  "severity": "high",
+  "department": "dispute_resolution",
+  "agent_summary": "Customer reports sending BDT 5,000 to a wrong number around 2pm today. Transaction history shows a completed transfer of BDT 5,000 at 14:08:22Z to +8801719876543, while the customer says the intended number was 01712345678. This is consistent with a wrong transfer complaint. No reversal/refund should be promised; dispute review is required.",
+  "recommended_next_action": "Open a wrong-transfer dispute for TXN-9101. Verify customer ownership/session, compare entered counterparty against intended recipient details, preserve transaction logs, and follow the standard wrong-transfer recovery workflow. Request only the minimum additional detail if needed: confirmation of the intended recipient number and any relationship/purpose of payment. Do not request PIN, OTP, password, or full card number.",
+  "customer_reply": "We found a completed transfer of 5,000 taka around the time you mentioned, and we’re escalating it for wrong-transfer review. Please do not share your PIN, OTP, password, or full card number with anyone.\n\nOur team will check the transaction details and follow the official recovery process. If any amount is eligible to be returned, it will be handled only through official channels. We may ask you to confirm limited details such as the intended recipient number or payment purpose, but we will never ask for your PIN or OTP.",
+  "human_review_required": true,
+  "confidence": 0.94,
+  "reason_codes": [
+    "matching_amount",
+    "matching_time_window",
+    "transfer_completed",
+    "counterparty_differs_from_intended_number"
+  ],
+  "ticket_id": "TKT-001"
+}
