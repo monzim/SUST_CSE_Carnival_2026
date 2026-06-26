@@ -4,7 +4,11 @@
 #   TRAEFIK_NETWORK  name of the existing external Traefik docker network
 #   API_HOST         public hostname Traefik should route (e.g. queuestorm.example.com)
 #   CERT_RESOLVER    Traefik certresolver name that issues the TLS cert
-#   GEMINI_API_KEY   Google Gemini API key (used from issue #2 onward)
+#   LLM_PROVIDER     openai (default) | anthropic | google-genai
+#   LLM_MODEL        optional model override for the selected provider
+#   OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY
+#                    key for the selected provider — OpenAI is the default;
+#                    Gemini is geo-blocked from some regions (e.g. BD)
 
 services:
   api:
@@ -18,6 +22,10 @@ services:
       HOST: 0.0.0.0
       PORT: "3000"
       REDIS_URL: redis://redis:6379
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
     depends_on:
       - redis
