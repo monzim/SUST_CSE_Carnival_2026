@@ -10,7 +10,14 @@
 export const CORE_VERSION = "0.1.0";
 
 export * from "./schema.js";
-export { analyzeTicket, type AnalyzeDeps } from "./analyze.js";
+export {
+  analyzeTicket,
+  analyzeTicketObserved,
+  type AnalyzeDeps,
+  type AnalysisMeta,
+  type ObservedAnalysis,
+  type TokenUsage,
+} from "./analyze.js";
 export { applyEvidenceGuards } from "./guards.js";
 export { applySafetyScanner, isUnsafeField } from "./safety.js";
 export { keywordFallback } from "./fallback.js";
@@ -22,6 +29,7 @@ export {
   LLM_PROVIDERS,
   type AnalysisRunner,
   type AnalysisRunnerOptions,
+  type AnalysisRunnerResult,
   type LlmProvider,
 } from "./agent.js";
 export { ANALYSIS_SYSTEM_PROMPT, buildUserPrompt } from "./prompt.js";
