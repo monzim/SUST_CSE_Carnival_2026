@@ -4,9 +4,11 @@ import {
   CORE_VERSION,
   TicketRequestSchema,
   analyzeTicket,
-  createGeminiAnalysisRunner,
-  DEFAULT_GEMINI_MODEL,
+  createAnalysisRunner,
+  DEFAULT_LLM_PROVIDER,
+  LLM_PROVIDERS,
   type AnalysisRunner,
+  type LlmProvider,
 } from "@queuestorm/core";
 
 const HOST = process.env.HOST ?? "0.0.0.0";
@@ -60,13 +62,28 @@ export function buildServer(opts: BuildServerOptions = {}) {
   return app;
 }
 
-/** Build the Gemini-backed runner from the environment, if a key is present. */
+/**
+ * Build the analyzer from the environment, if the chosen provider's key is set.
+ *
+ * `LLM_PROVIDER` selects the provider (default: OpenAI), `LLM_MODEL` overrides
+ * the model, and the key is read from that provider's conventional env var
+ * (e.g. OPENAI_API_KEY). `GEMINI_API_KEY` is accepted as an alias for the
+ * google-genai key.
+ */
 export function runnerFromEnv(): AnalysisRunner | undefined {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const provider = (process.env.LLM_PROVIDER ?? DEFAULT_LLM_PROVIDER) as LlmProvider;
+  const providerConfig = LLM_PROVIDERS[provider];
+  if (!providerConfig) return undefined;
+
+  const apiKey =
+    process.env[providerConfig.apiKeyEnv] ??
+    (provider === "google-genai" ? process.env.GEMINI_API_KEY : undefined);
   if (!apiKey) return undefined;
-  return createGeminiAnalysisRunner({
+
+  return createAnalysisRunner({
     apiKey,
-    model: process.env.GEMINI_MODEL ?? DEFAULT_GEMINI_MODEL,
+    provider,
+    model: process.env.LLM_MODEL,
   });
 }
 
@@ -77,7 +94,9 @@ async function main() {
   const runner = runnerFromEnv();
   const app = buildServer({ runner });
   if (!runner) {
-    app.log.warn("GEMINI_API_KEY not set — /analyze-ticket will respond 503");
+    app.log.warn(
+      "No LLM API key set for the selected provider — /analyze-ticket will respond 503",
+    );
   }
 
   try {

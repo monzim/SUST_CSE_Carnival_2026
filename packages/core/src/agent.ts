@@ -1,11 +1,17 @@
 /**
- * Constrained Gemini Deep Agent runner.
+ * Constrained, provider-agnostic Deep Agent runner.
  *
- * The analysis runs Google Gemini through a deliberately constrained LangChain
- * Deep Agent: the filesystem tools and the subagent `task` tool are excluded,
- * the auto general-purpose subagent is disabled, and a single structured
- * `emit_analysis` tool is the only way the model can produce output. The agent
- * runs a single turn and we read the structured arguments back out of the tool.
+ * The analysis runs through a deliberately constrained LangChain Deep Agent:
+ * the filesystem tools and the subagent `task` tool are excluded, the auto
+ * general-purpose subagent is disabled, and a single structured `emit_analysis`
+ * tool is the only way the model can produce output. The agent runs a single
+ * turn and we read the structured arguments back out of the tool.
+ *
+ * The model provider is swappable (the problem statement allows any major LLM
+ * provider — OpenAI, Anthropic, Google AI, etc.). The model is passed as a
+ * `<provider>:<model>` string so the constrained harness profile (keyed by that
+ * string) applies; init_chat_model resolves the provider and reads its key from
+ * the provider's conventional env var, which we set from the supplied `apiKey`.
  */
 import { createDeepAgent, registerHarnessProfile } from "deepagents";
 import { tool } from "langchain";
@@ -28,16 +34,29 @@ const FILESYSTEM_TOOL_NAMES = [
 ] as const;
 
 /**
- * Default Gemini model. Issue #2 calls for `gemini-3.5-flash`, with
- * `gemini-2.5-flash` as a documented fallback if the former does not resolve
- * against the live API. Override via the `model` option (or `GEMINI_MODEL`).
+ * Per-provider defaults: the deepagents/langchain provider token, a sensible
+ * default model id, and the env var init_chat_model reads the key from.
+ *
+ * The problem statement permits any provider; OpenAI is the default because it
+ * is reachable from the build region (unlike the Gemini Developer API, which is
+ * geo-blocked from some regions). Override the model via the `model` option.
  */
-export const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash";
+export const LLM_PROVIDERS = {
+  openai: { defaultModel: "gpt-5.5", apiKeyEnv: "OPENAI_API_KEY" },
+  anthropic: { defaultModel: "claude-opus-4-8", apiKeyEnv: "ANTHROPIC_API_KEY" },
+  "google-genai": { defaultModel: "gemini-3.5-flash", apiKeyEnv: "GOOGLE_API_KEY" },
+} as const satisfies Record<string, { defaultModel: string; apiKeyEnv: string }>;
 
-export interface GeminiRunnerOptions {
-  /** Gemini Developer API key (e.g. from `GEMINI_API_KEY`). */
+export type LlmProvider = keyof typeof LLM_PROVIDERS;
+
+export const DEFAULT_LLM_PROVIDER: LlmProvider = "openai";
+
+export interface AnalysisRunnerOptions {
+  /** API key for the chosen provider. */
   apiKey: string;
-  /** Bare model id, e.g. "gemini-3.5-flash". */
+  /** Provider token. Defaults to {@link DEFAULT_LLM_PROVIDER}. */
+  provider?: LlmProvider;
+  /** Bare model id (e.g. "gpt-5.5"). Defaults to the provider's default. */
   model?: string;
 }
 
@@ -45,8 +64,8 @@ export interface GeminiRunnerOptions {
 export type AnalysisRunner = (request: TicketRequest) => Promise<AnalysisCore>;
 
 /**
- * Register (idempotently) the constrained harness profile for a model key.
- * Hides the filesystem + subagent tools and disables the general-purpose
+ * Register (idempotently) the constrained harness profile for a model key:
+ * hides the filesystem + subagent tools and disables the general-purpose
  * subagent so the agent can only run a single structured turn.
  */
 function registerConstrainedProfile(modelKey: string): void {
@@ -57,24 +76,16 @@ function registerConstrainedProfile(modelKey: string): void {
 }
 
 /**
- * Build a runner backed by a constrained Gemini Deep Agent.
- *
- * The model is passed as a `google-genai:<model>` string so the harness profile
- * (keyed by that string) applies; init_chat_model reads the key from
- * `GOOGLE_API_KEY`, which we set from the provided `apiKey`.
+ * Build a runner backed by a constrained Deep Agent over the chosen provider.
  */
-export function createGeminiAnalysisRunner(
-  opts: GeminiRunnerOptions,
-): AnalysisRunner {
-  const modelId = opts.model ?? DEFAULT_GEMINI_MODEL;
-  // langchain's init_chat_model uses the hyphenated `google-genai` provider
-  // token for the Gemini Developer API (a bare `gemini-*` would mis-infer as
-  // Vertex AI, which needs GCP auth instead of an API key).
-  const modelKey = `google-genai:${modelId}`;
+export function createAnalysisRunner(opts: AnalysisRunnerOptions): AnalysisRunner {
+  const provider = opts.provider ?? DEFAULT_LLM_PROVIDER;
+  const providerConfig = LLM_PROVIDERS[provider];
+  const modelId = opts.model ?? providerConfig.defaultModel;
+  const modelKey = `${provider}:${modelId}`;
 
-  // @langchain/google-genai resolves the key from GOOGLE_API_KEY when the model
-  // is built from a provider:model string.
-  process.env.GOOGLE_API_KEY = opts.apiKey;
+  // init_chat_model reads each provider's key from its conventional env var.
+  process.env[providerConfig.apiKeyEnv] = opts.apiKey;
   registerConstrainedProfile(modelKey);
 
   return async function run(request: TicketRequest): Promise<AnalysisCore> {

@@ -12,9 +12,11 @@ export const CORE_VERSION = "0.1.0";
 export * from "./schema.js";
 export { analyzeTicket, type AnalyzeDeps } from "./analyze.js";
 export {
-  createGeminiAnalysisRunner,
-  DEFAULT_GEMINI_MODEL,
+  createAnalysisRunner,
+  DEFAULT_LLM_PROVIDER,
+  LLM_PROVIDERS,
   type AnalysisRunner,
-  type GeminiRunnerOptions,
+  type AnalysisRunnerOptions,
+  type LlmProvider,
 } from "./agent.js";
 export { ANALYSIS_SYSTEM_PROMPT, buildUserPrompt } from "./prompt.js";
