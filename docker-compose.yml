@@ -1,14 +1,20 @@
-# QueueStorm — deploy stack.
+# QueueStorm — local deploy stack.
 #
-# Deploy-time inputs (set in .env next to this file, never committed):
-#   TRAEFIK_NETWORK  name of the existing external Traefik docker network
-#   API_HOST         public hostname Traefik should route (e.g. queuestorm.example.com)
-#   CERT_RESOLVER    Traefik certresolver name that issues the TLS cert
+# Runs the whole service locally with one command, no external infra:
+#   docker compose up -d --build
+#   curl http://localhost:3000/health   # -> {"status":"ok"}
+#
+# Config (set in .env next to this file, never committed):
+#   API_PORT         host port to publish the API on (default 3000)
 #   LLM_PROVIDER     openai (default) | anthropic | google-genai
 #   LLM_MODEL        optional model override for the selected provider
 #   OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY
 #                    key for the selected provider — OpenAI is the default;
-#                    Gemini is geo-blocked from some regions (e.g. BD)
+#                    Gemini is geo-blocked from some regions (e.g. BD).
+#
+# To expose this publicly, put any reverse proxy (Traefik, Caddy, nginx) in
+# front of the published port and terminate TLS there — no proxy-specific
+# config lives in this file.
 
 services:
   api:
@@ -17,6 +23,8 @@ services:
       dockerfile: Dockerfile
     image: queuestorm-api:latest
     restart: unless-stopped
+    ports:
+      - "${API_PORT:-3000}:3000"
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
@@ -30,7 +38,6 @@ services:
     depends_on:
       - redis
     networks:
-      - traefik
       - internal
     healthcheck:
       test:
@@ -42,13 +49,6 @@ services:
       timeout: 5s
       retries: 6
       start_period: 60s
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=${TRAEFIK_NETWORK}
-      - traefik.http.routers.queuestorm.rule=Host(`${API_HOST}`)
-      - traefik.http.routers.queuestorm.entrypoints=websecure
-      - traefik.http.routers.queuestorm.tls.certresolver=${CERT_RESOLVER}
-      - traefik.http.services.queuestorm.loadbalancer.server.port=3000
 
   redis:
     image: redis:7-alpine
@@ -57,10 +57,5 @@ services:
       - internal
 
 networks:
-  # The existing, externally-managed Traefik network. Created out-of-band:
-  #   docker network create <TRAEFIK_NETWORK>
-  traefik:
-    external: true
-    name: ${TRAEFIK_NETWORK}
   internal:
     driver: bridge
