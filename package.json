@@ -1,0 +1,22 @@
+{
+  "name": "queuestorm",
+  "version": "0.1.0",
+  "private": true,
+  "description": "QueueStorm — AI banking-ticket triage service (SUST CSE Carnival 2026)",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "dev:api": "pnpm --filter @queuestorm/api dev",
+    "start:api": "pnpm --filter @queuestorm/api start",
+    "cli": "pnpm --filter @queuestorm/cli start"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "@types/node": "^22.10.7"
+  },
+  "packageManager": "pnpm@11.5.3"
+}
