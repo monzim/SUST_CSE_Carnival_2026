@@ -14,6 +14,11 @@ import {
 const HOST = process.env.HOST ?? "0.0.0.0";
 const PORT = Number(process.env.PORT ?? 3000);
 
+/** Narrow an unknown request body to an indexable object. */
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
 export interface BuildServerOptions {
   /**
    * Analyzer the `/analyze-ticket` route delegates to. Injectable so tests can
@@ -36,7 +41,18 @@ export function buildServer(opts: BuildServerOptions = {}) {
 
   // Thin adapter over the pure `analyzeTicket`: validate, delegate, map errors.
   app.post("/analyze-ticket", async (request, reply) => {
-    const parsed = TicketRequestSchema.safeParse(request.body);
+    const body = request.body;
+
+    // Distinguish "present but empty complaint" (422 — semantically invalid)
+    // from "malformed/junk payload" (400). An empty/whitespace complaint is a
+    // well-formed request the service cannot act on.
+    const complaint = isObject(body) ? body.complaint : undefined;
+    if (typeof complaint === "string" && complaint.trim() === "") {
+      reply.code(422);
+      return { error: "Unprocessable: 'complaint' must not be empty." };
+    }
+
+    const parsed = TicketRequestSchema.safeParse(body);
     if (!parsed.success) {
       // Non-sensitive message; never echo internal validation detail verbatim.
       reply.code(400);
@@ -51,10 +67,12 @@ export function buildServer(opts: BuildServerOptions = {}) {
     }
 
     try {
+      // analyzeTicket degrades to a safe fallback on model timeout/error, so a
+      // 200 with a safe body is the normal path even when the LLM is down.
       return await analyzeTicket(parsed.data, { run: opts.runner });
     } catch (err) {
       request.log.error({ err }, "analyze-ticket failed");
-      reply.code(502);
+      reply.code(500);
       return { error: "Analysis failed." };
     }
   });

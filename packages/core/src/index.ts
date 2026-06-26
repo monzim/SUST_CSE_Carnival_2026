@@ -11,6 +11,11 @@ export const CORE_VERSION = "0.1.0";
 
 export * from "./schema.js";
 export { analyzeTicket, type AnalyzeDeps } from "./analyze.js";
+export { applyEvidenceGuards } from "./guards.js";
+export { applySafetyScanner, isUnsafeField } from "./safety.js";
+export { keywordFallback } from "./fallback.js";
+export { HIGH_VALUE, LLM_TIMEOUT_MS, NEVER_SHARE_LINE } from "./constants.js";
+export { replyLanguage, hasBangla } from "./lang.js";
 export {
   createAnalysisRunner,
   DEFAULT_LLM_PROVIDER,

@@ -84,13 +84,14 @@ describe("analyzeTicket", () => {
     expect(result.ticket_id).toBe("TKT-006");
   });
 
-  it("rejects an off-spec enum from the model", async () => {
-    await expect(
-      analyzeTicket(
-        SAMPLE_01_REQUEST,
-        depsReturning({ ...SAMPLE_01_CORE, case_type: "WrongTransfer" }),
-      ),
-    ).rejects.toThrow();
+  it("clamps an off-spec enum from the model to the whitelist", async () => {
+    // Evidence guards clamp rather than reject: an invalid case_type becomes
+    // `other` and the response is still schema-valid.
+    const result = await analyzeTicket(
+      SAMPLE_01_REQUEST,
+      depsReturning({ ...SAMPLE_01_CORE, case_type: "WrongTransfer" }),
+    );
+    expect(result.case_type).toBe("other");
   });
 
   it("rejects a request missing the complaint", async () => {

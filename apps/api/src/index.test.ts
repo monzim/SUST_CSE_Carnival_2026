@@ -65,6 +65,39 @@ describe("POST /analyze-ticket", () => {
     await app.close();
   });
 
+  it("returns 422 when the complaint is empty/whitespace", async () => {
+    const app = buildServer({ runner: async () => FAKE_CORE });
+    for (const complaint of ["", "   "]) {
+      const res = await app.inject({
+        method: "POST",
+        url: "/analyze-ticket",
+        payload: { ticket_id: "TKT-001", complaint },
+      });
+      expect(res.statusCode).toBe(422);
+    }
+    await app.close();
+  });
+
+  it("returns a safe 200 fallback when the analyzer throws", async () => {
+    const app = buildServer({
+      runner: async () => {
+        throw new Error("provider down");
+      },
+    });
+    const res = await app.inject({
+      method: "POST",
+      url: "/analyze-ticket",
+      payload: SAMPLE_01_INPUT,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.ticket_id).toBe("TKT-001");
+    expect(body.human_review_required).toBe(true);
+    expect(body.customer_reply).toMatch(/do not share your PIN or OTP/i);
+    await app.close();
+  });
+
   it("returns 503 when no analyzer is configured", async () => {
     const app = buildServer();
     const res = await app.inject({
