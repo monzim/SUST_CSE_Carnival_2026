@@ -42,7 +42,7 @@ const FILESYSTEM_TOOL_NAMES = [
  * geo-blocked from some regions). Override the model via the `model` option.
  */
 export const LLM_PROVIDERS = {
-  openai: { defaultModel: "gpt-5.5", apiKeyEnv: "OPENAI_API_KEY" },
+  openai: { defaultModel: "gpt-5-mini", apiKeyEnv: "OPENAI_API_KEY" },
   anthropic: { defaultModel: "claude-opus-4-8", apiKeyEnv: "ANTHROPIC_API_KEY" },
   "google-genai": { defaultModel: "gemini-3.5-flash", apiKeyEnv: "GOOGLE_API_KEY" },
 } as const satisfies Record<string, { defaultModel: string; apiKeyEnv: string }>;
