@@ -14,7 +14,7 @@
   "dependencies": {
     "@queuestorm/core": "workspace:*",
     "dotenv": "^17.4.2",
-    "fastify": "^5.2.1",
+    "fastify": "^5.12.5",
     "redis": "^6.0.1",
     "zod": "^4.4.3"
   },
