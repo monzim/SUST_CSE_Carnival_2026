@@ -3,7 +3,7 @@
 # ---------- builder ----------
 # Installs the full workspace, compiles TypeScript, then produces a pruned,
 # production-only bundle for the API via `pnpm deploy`.
-FROM node:22-slim AS builder
+FROM node:22.23.4-slim AS builder
 ENV PNPM_HOME=/pnpm
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -22,7 +22,7 @@ RUN pnpm -r build
 RUN pnpm --filter @queuestorm/api deploy --prod --legacy /app
 
 # ---------- runner ----------
-FROM node:22-slim AS runner
+FROM node:22.23.4-slim AS runner
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000

@@ -12,7 +12,7 @@
     "cli": "pnpm --filter @queuestorm/cli start"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.23.4"
   },
   "devDependencies": {
     "typescript": "^5.7.3",
